@@ -1,0 +1,93 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    direction: rtl;
+    font-family: 'Heebo', sans-serif;
+  }
+  
+  body {
+    font-family: 'Heebo', sans-serif;
+    @apply bg-gray-950;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-gray-900;
+    border-radius: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-700;
+    border-radius: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-600;
+  }
+  
+  /* Improved form elements spacing */
+  input, select, textarea {
+    @apply py-3 px-4;
+  }
+  
+  button {
+    @apply py-2.5 px-4;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-gray-850 rounded-xl shadow-lg p-6 border border-gray-800;
+  }
+
+  .btn-primary {
+    @apply px-4 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors;
+  }
+
+  .input {
+    @apply block w-full rounded-lg border-gray-700 bg-gray-800 text-white shadow-sm focus:border-gray-500 focus:ring focus:ring-gray-500 focus:ring-opacity-50 py-3 px-4;
+  }
+
+  .table-header {
+    @apply px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider;
+  }
+
+  .table-cell {
+    @apply px-6 py-4 whitespace-nowrap text-sm text-gray-300;
+  }
+
+  .table-row {
+    @apply hover:bg-gray-800 transition-colors;
+  }
+
+  .modal {
+    @apply fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50;
+  }
+
+  .modal-content {
+    @apply bg-gray-850 rounded-lg p-6 max-w-md w-full shadow-xl border border-gray-800;
+  }
+  
+  /* Form group spacing */
+  .form-group {
+    @apply mb-5;
+  }
+  
+  /* Improved spacing for form layouts */
+  .form-grid {
+    @apply grid gap-5;
+  }
+  
+  /* Improved spacing for flex layouts */
+  .flex-layout {
+    @apply flex gap-4;
+  }
+}
