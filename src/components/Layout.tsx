@@ -206,28 +206,28 @@ export default function Layout({ children, userRole }: LayoutProps) {
   const { taskItems, otherItems } = getMenuItems();
 
   return (
-    <div className="min-h-screen bg-gray-950 font-heebo">
+    <div className="min-h-screen bg-primary-dark font-heebo">
       {/* Overlay for mobile */}
       {isSidebarOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          className="fixed inset-0 bg-primary-dark/60 backdrop-blur-sm z-40 md:hidden"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 right-0 z-50 w-64 bg-gray-900 shadow-xl transform transition-transform duration-200 ease-in-out ${
+        className={`fixed inset-y-0 right-0 z-50 w-64 bg-primary shadow-2xl transform transition-transform duration-300 ease-in-out border-l border-primary-light/10 ${
           isSidebarOpen ? 'translate-x-0' : 'translate-x-full'
         } md:translate-x-0`}
       >
         <div className="flex flex-col h-full">
-          <div className="flex justify-between items-center p-6">
-            <div className="flex items-center space-x-4">
+          <div className="flex justify-between items-center p-6 border-b border-primary-light/10">
+            <div className="flex items-center">
               <img 
-                src="https://wlzreoiumzmfbskzuywj.supabase.co/storage/v1/object/public/logo//logo%20verti.png"
-                alt="Logo"
-                className="h-12 w-auto"
+                src="/logo.png"
+                alt="IFEEL Logo"
+                className="h-16 w-auto"
               />
             </div>
             <button
@@ -244,15 +244,17 @@ export default function Layout({ children, userRole }: LayoutProps) {
                 <li key={item.path}>
                   <button
                     onClick={() => handleNavigation(item.path)}
-                    className={`w-full text-right px-4 py-3 rounded-lg transition-colors flex justify-between items-center ${
+                    className={`w-full text-right px-4 py-3 rounded-lg transition-all duration-200 flex justify-between items-center group ${
                       location.pathname === item.path
-                        ? 'bg-gray-800 text-white font-medium'
-                        : 'text-gray-300 hover:bg-gray-800'
+                        ? 'bg-secondary text-primary-dark font-bold shadow-lg'
+                        : 'text-gray-300 hover:bg-primary-light/50 hover:text-white'
                     }`}
                   >
                     <span className="flex items-center">
-                      {item.icon}
-                      {item.label}
+                      <span className={`${location.pathname === item.path ? 'text-primary-dark' : 'text-secondary'} group-hover:scale-110 transition-transform`}>
+                        {item.icon}
+                      </span>
+                      <span className="mr-2">{item.label}</span>
                     </span>
                     {item.notification && (
                       <span className="relative">
@@ -305,15 +307,17 @@ export default function Layout({ children, userRole }: LayoutProps) {
                 <li key={item.path}>
                   <button
                     onClick={() => handleNavigation(item.path)}
-                    className={`w-full text-right px-4 py-3 rounded-lg transition-colors flex justify-between items-center ${
+                    className={`w-full text-right px-4 py-3 rounded-lg transition-all duration-200 flex justify-between items-center group ${
                       location.pathname === item.path
-                        ? 'bg-gray-800 text-white font-medium'
-                        : 'text-gray-300 hover:bg-gray-800'
+                        ? 'bg-secondary text-primary-dark font-bold shadow-lg'
+                        : 'text-gray-300 hover:bg-primary-light/50 hover:text-white'
                     }`}
                   >
                     <span className="flex items-center">
-                      {item.icon}
-                      {item.label}
+                      <span className={`${location.pathname === item.path ? 'text-primary-dark' : 'text-secondary'} group-hover:scale-110 transition-transform`}>
+                        {item.icon}
+                      </span>
+                      <span className="mr-2">{item.label}</span>
                     </span>
                     {item.notification && (
                       <span className="relative">

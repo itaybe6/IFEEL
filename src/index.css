@@ -10,7 +10,7 @@
   
   body {
     font-family: 'Heebo', sans-serif;
-    @apply bg-gray-950;
+    @apply bg-primary-dark;
   }
 
   /* Custom scrollbar */
@@ -20,17 +20,17 @@
   }
 
   ::-webkit-scrollbar-track {
-    @apply bg-gray-900;
+    @apply bg-primary;
     border-radius: 10px;
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-gray-700;
+    @apply bg-secondary;
     border-radius: 10px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-600;
+    @apply bg-secondary-light;
   }
   
   /* Improved form elements spacing */
@@ -45,35 +45,39 @@
 
 @layer components {
   .card {
-    @apply bg-gray-850 rounded-xl shadow-lg p-6 border border-gray-800;
+    @apply bg-primary rounded-xl shadow-lg p-6 border border-primary-light/20;
   }
 
   .btn-primary {
-    @apply px-4 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors;
+    @apply px-4 py-3 bg-secondary text-primary-dark font-bold rounded-lg hover:bg-secondary-light transition-all transform hover:scale-[1.02] active:scale-[0.98];
+  }
+
+  .btn-secondary {
+    @apply px-4 py-3 bg-primary-light text-white rounded-lg hover:bg-primary transition-colors border border-primary-light;
   }
 
   .input {
-    @apply block w-full rounded-lg border-gray-700 bg-gray-800 text-white shadow-sm focus:border-gray-500 focus:ring focus:ring-gray-500 focus:ring-opacity-50 py-3 px-4;
+    @apply block w-full rounded-lg border-primary-light bg-primary-dark text-white shadow-sm focus:border-secondary focus:ring focus:ring-secondary focus:ring-opacity-50 py-3 px-4;
   }
 
   .table-header {
-    @apply px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider;
+    @apply px-6 py-3 text-right text-xs font-medium text-secondary uppercase tracking-wider bg-primary-dark/50;
   }
 
   .table-cell {
-    @apply px-6 py-4 whitespace-nowrap text-sm text-gray-300;
+    @apply px-6 py-4 whitespace-nowrap text-sm text-gray-200;
   }
 
   .table-row {
-    @apply hover:bg-gray-800 transition-colors;
+    @apply hover:bg-primary-light/30 transition-colors border-b border-primary-light/10;
   }
 
   .modal {
-    @apply fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50;
+    @apply fixed inset-0 bg-primary-dark/80 backdrop-blur-sm flex items-center justify-center z-50;
   }
 
   .modal-content {
-    @apply bg-gray-850 rounded-lg p-6 max-w-md w-full shadow-xl border border-gray-800;
+    @apply bg-primary rounded-lg p-6 max-w-md w-full shadow-xl border border-primary-light/20;
   }
   
   /* Form group spacing */

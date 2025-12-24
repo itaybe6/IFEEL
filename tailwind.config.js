@@ -10,19 +10,29 @@ export default {
         'rtl': 'rtl',
       },
       colors: {
+        primary: {
+          DEFAULT: '#2D3E3B', // Dark Green/Grey from logo
+          light: '#3D524F',
+          dark: '#1D2A28',
+        },
+        secondary: {
+          DEFAULT: '#C5A073', // Gold from logo
+          light: '#D4B894',
+          dark: '#B68852',
+        },
         gray: {
-          950: '#121212', // Not too black
-          900: '#1A1A1A', // Very dark gray
-          850: '#222222', // Dark gray for cards
-          800: '#2A2A2A', // Dark gray for backgrounds
-          700: '#333333', // Medium dark gray
-          600: '#444444', // Medium gray
-          500: '#666666', // Medium gray
-          400: '#888888', // Light gray
-          300: '#AAAAAA', // Lighter gray
-          200: '#CCCCCC', // Very light gray
-          100: '#E5E5E5', // Almost white
-          50: '#F5F5F5',  // White
+          950: '#1a2422', // Deepest green-grey
+          900: '#23302d', // Dark green-grey
+          850: '#2d3e3b', // Primary logo green
+          800: '#384d49', // Mid green-grey
+          700: '#4d6662', // Lighter green-grey
+          600: '#62807b',
+          500: '#7a9994',
+          400: '#9db3b0',
+          300: '#c0cdcb',
+          200: '#e0e6e5',
+          100: '#f0f2f2',
+          50: '#f8f9f9',
         }
       },
     },

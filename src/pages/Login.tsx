@@ -61,36 +61,36 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 font-heebo">
+    <div className="min-h-screen bg-primary-dark flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 font-heebo">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
           <img 
-            src="https://wlzreoiumzmfbskzuywj.supabase.co/storage/v1/object/public/logo//ocd%20logo-02.png" 
-            alt="לוגו שירותי ריח" 
-            className="h-32 w-auto"
+            src="/logo.png" 
+            alt="IFEEL Logo" 
+            className="h-40 w-auto"
           />
         </div>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
-          התחברות למערכת
+          ברוכים הבאים ל-IFEEL
         </h2>
-        <p className="mt-2 text-center text-sm text-gray-400 font-light">
-          מלאו את הפרטים למטה כדי להתחבר למערכת
+        <p className="mt-2 text-center text-sm text-secondary font-light">
+          good in the air
         </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-gray-900 py-8 px-6 mx-4 sm:mx-0 shadow-xl rounded-lg sm:px-10 border border-gray-800">
+        <div className="bg-primary py-8 px-6 mx-4 sm:mx-0 shadow-2xl rounded-2xl sm:px-10 border border-primary-light/20 backdrop-blur-sm">
           <form className="space-y-6" onSubmit={handleLogin}>
             <div className="form-group">
               <label
                 htmlFor="phone"
-                className="block text-sm font-medium text-gray-300 mb-2"
+                className="block text-sm font-medium text-gray-200 mb-2"
               >
                 מספר טלפון
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <Phone className="h-5 w-5 text-gray-500" />
+                  <Phone className="h-5 w-5 text-secondary" />
                 </div>
                 <input
                   id="phone"
@@ -99,7 +99,7 @@ export default function Login() {
                   required
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="block w-full pr-10 py-3 sm:text-sm bg-gray-800 border-gray-700 text-white rounded-md focus:ring-gray-600 focus:border-gray-600"
+                  className="block w-full pr-10 py-3 sm:text-sm bg-primary-dark border-primary-light/30 text-white rounded-xl focus:ring-secondary focus:border-secondary transition-all"
                   placeholder="מספר פלאפון"
                   dir="rtl"
                 />
@@ -109,13 +109,13 @@ export default function Login() {
             <div className="form-group">
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-gray-300 mb-2"
+                className="block text-sm font-medium text-gray-200 mb-2"
               >
                 סיסמה
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-500" />
+                  <Lock className="h-5 w-5 text-secondary" />
                 </div>
                 <input
                   id="password"
@@ -124,7 +124,7 @@ export default function Login() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full pr-10 py-3 sm:text-sm bg-gray-800 border-gray-700 text-white rounded-md focus:ring-gray-600 focus:border-gray-600"
+                  className="block w-full pr-10 py-3 sm:text-sm bg-primary-dark border-primary-light/30 text-white rounded-xl focus:ring-secondary focus:border-secondary transition-all"
                   placeholder="סיסמא"
                   dir="rtl"
                 />
@@ -134,9 +134,9 @@ export default function Login() {
             <div>
               <button
                 type="submit"
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-700 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                className="w-full btn-primary"
               >
-                התחבר
+                התחבר למערכת
               </button>
             </div>
           </form>
