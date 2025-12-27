@@ -378,18 +378,6 @@ export default function AdminUsers() {
           .delete()
           .eq('customer_id', userId);
 
-        // Delete installation jobs
-        await supabase
-          .from('installation_jobs')
-          .delete()
-          .eq('customer_id', userId);
-
-        // Delete special jobs
-        await supabase
-          .from('special_jobs')
-          .delete()
-          .eq('customer_id', userId);
-
         // Delete template stations
         await supabase
           .from('template_stations')
@@ -401,18 +389,6 @@ export default function AdminUsers() {
         // Delete jobs assigned to worker
         await supabase
           .from('jobs')
-          .delete()
-          .eq('worker_id', userId);
-
-        // Delete installation jobs assigned to worker
-        await supabase
-          .from('installation_jobs')
-          .delete()
-          .eq('worker_id', userId);
-
-        // Delete special jobs assigned to worker
-        await supabase
-          .from('special_jobs')
           .delete()
           .eq('worker_id', userId);
 

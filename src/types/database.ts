@@ -5,8 +5,6 @@ type ScentType = string;
 
 export type BatteryType = 'AA' | 'DC';
 
-export type SpecialJobType = 'scent_spread' | 'plants' | 'batteries' | 'repairs';
-
 export type UserRole = 'admin' | 'worker' | 'customer';
 
 // -- App-level types used across the UI (kept as-is) --
@@ -52,41 +50,6 @@ export interface Job {
   status: 'pending' | 'completed';
   notes?: string;
   order_number?: number;
-  created_at: string;
-}
-
-export interface InstallationDevice {
-  id: string;
-  installation_job_id: string;
-  device_type: DeviceType;
-  notes?: string;
-  image_url?: string;
-  created_at: string;
-}
-
-export interface InstallationJob {
-  id: string;
-  customer_id?: string;
-  one_time_customer_id?: string;
-  worker_id: string;
-  date: string;
-  status: 'pending' | 'completed';
-  notes?: string;
-  created_at: string;
-  devices?: InstallationDevice[];
-}
-
-export interface SpecialJob {
-  id: string;
-  customer_id?: string;
-  one_time_customer_id?: string;
-  worker_id: string;
-  job_type: SpecialJobType;
-  date: string;
-  status: 'pending' | 'completed';
-  notes?: string;
-  battery_type?: BatteryType;
-  image_url?: string;
   created_at: string;
 }
 
@@ -150,29 +113,6 @@ export interface Devices {
   refill_amount: number;
 }
 
-export interface InstallationDevices {
-  id: string;
-  installation_job_id: string | null;
-  notes: string | null;
-  image_url: string | null;
-  created_at: string | null;
-  device_type: string | null;
-}
-
-export interface InstallationJobs {
-  id: string;
-  customer_id: string | null;
-  worker_id: string;
-  device_type: string;
-  date: string;
-  status: 'pending' | 'completed';
-  notes: string | null;
-  created_at: string | null;
-  image_url: string | null;
-  order_number: number | null;
-  one_time_customer_id: string | null;
-}
-
 export interface JobServicePoints {
   id: string;
   job_id: string | null;
@@ -217,21 +157,6 @@ export interface ServicePoints {
   created_at: string | null;
   device_type: string;
   scent_type: string | null;
-}
-
-export interface SpecialJobs {
-  id: string;
-  customer_id: string | null;
-  worker_id: string;
-  job_type: SpecialJobType;
-  date: string;
-  status: 'pending' | 'completed';
-  notes: string | null;
-  battery_type: BatteryType | null;
-  created_at: string | null;
-  image_url: string | null;
-  order_number: number | null;
-  one_time_customer_id: string | null;
 }
 
 export interface SupportTickets {
@@ -302,10 +227,3 @@ export const DEVICE_TYPES: string[] = [
 ];
 
 export const BATTERY_TYPES: BatteryType[] = ['AA', 'DC'];
-
-export const SPECIAL_JOB_TYPES: Record<SpecialJobType, string> = {
-  'scent_spread': 'פיזור סחורה',
-  'plants': 'עציצים',
-  'batteries': 'סוללות',
-  'repairs': 'תיקונים'
-};

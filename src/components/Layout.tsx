@@ -26,7 +26,6 @@ export default function Layout({ children, userRole }: LayoutProps) {
   const { setIsLoading } = useLoading();
   const { setUser } = useAuth();
   const [newTicketsCount, setNewTicketsCount] = useState(0);
-  const [specialJobsCount, setSpecialJobsCount] = useState(0);
 
   const handleLogout = async () => {
     setIsLoading(true);
@@ -79,78 +78,6 @@ export default function Layout({ children, userRole }: LayoutProps) {
         subscription.unsubscribe();
       };
     }
-
-    // Fetch special jobs count for worker role
-    if (userRole === 'worker') {
-      const fetchSpecialJobsCount = async () => {
-        try {
-          const user = JSON.parse(localStorage.getItem('user') || '{}');
-          if (!user?.id) return;
-
-          const startOfDay = new Date();
-          startOfDay.setHours(0, 0, 0, 0);
-          const endOfDay = new Date();
-          endOfDay.setHours(23, 59, 59, 999);
-
-          // Count installation jobs
-          const { data: installationJobs, error: installationError } = await supabase
-            .from('installation_jobs')
-            .select('id')
-            .eq('worker_id', user.id)
-            .eq('status', 'pending')
-            .gte('date', startOfDay.toISOString())
-            .lte('date', endOfDay.toISOString());
-
-          if (installationError) throw installationError;
-
-          // Count special jobs
-          const { data: specialJobs, error: specialError } = await supabase
-            .from('special_jobs')
-            .select('id')
-            .eq('worker_id', user.id)
-            .eq('status', 'pending')
-            .gte('date', startOfDay.toISOString())
-            .lte('date', endOfDay.toISOString());
-
-          if (specialError) throw specialError;
-
-          const totalCount = (installationJobs?.length || 0) + (specialJobs?.length || 0);
-          setSpecialJobsCount(totalCount);
-        } catch (error) {
-          console.error('Error fetching special jobs count:', error);
-        }
-      };
-
-      fetchSpecialJobsCount();
-
-      // Set up subscriptions for real-time updates
-      const installationSubscription = supabase
-        .channel('installation_jobs_changes')
-        .on('postgres_changes', { 
-          event: '*', 
-          schema: 'public', 
-          table: 'installation_jobs' 
-        }, () => {
-          fetchSpecialJobsCount();
-        })
-        .subscribe();
-
-      const specialSubscription = supabase
-        .channel('special_jobs_changes')
-        .on('postgres_changes', { 
-          event: '*', 
-          schema: 'public', 
-          table: 'special_jobs' 
-        }, () => {
-          fetchSpecialJobsCount();
-        })
-        .subscribe();
-
-      return () => {
-        installationSubscription.unsubscribe();
-        specialSubscription.unsubscribe();
-      };
-    }
   }, [userRole]);
 
   const getMenuItems = () => {
@@ -158,7 +85,6 @@ export default function Layout({ children, userRole }: LayoutProps) {
       case 'admin': {
         const taskItems: NavItem[] = [
           { label: 'משימות ריח', path: '/admin/jobs', icon: <Droplets className="h-4 w-4 ml-1" /> },
-          { label: 'משימות מיוחדות', path: '/admin/installation-jobs', icon: <Tool className="h-4 w-4 ml-1" /> },
           { label: 'הוספת משימות', path: '/admin/add-jobs', icon: <PlusCircle className="h-4 w-4 ml-1" /> },
           { label: 'ביצוע משימות', path: '/admin/job-execution', icon: <ClipboardCheck className="h-4 w-4 ml-1" /> },
         ];
@@ -224,11 +150,7 @@ export default function Layout({ children, userRole }: LayoutProps) {
         <div className="flex flex-col h-full">
           <div className="flex justify-between items-center p-6 border-b border-primary-light/10">
             <div className="flex items-center">
-              <img 
-                src="/logo.png"
-                alt="IFEEL Logo"
-                className="h-16 w-auto"
-              />
+              <span className="text-2xl font-bold text-white tracking-wider">FEEL</span>
             </div>
             <button
               onClick={() => setIsSidebarOpen(false)}

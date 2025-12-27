@@ -1,8 +1,8 @@
 import React, { useState, useCallback } from 'react';
 import Layout from '../../components/Layout';
-import { Job, SPECIAL_JOB_TYPES, SpecialJobType } from '../../types/database';
+import { Job } from '../../types/database';
 import { supabase } from '../../lib/supabase';
-import { Calendar, X, Image, Eye, Phone, PenTool as Tool, Wrench, Battery, Leaf, SprayCan as Spray, Hash, Clock } from 'lucide-react';
+import { Calendar, X, Phone, SprayCan as Spray, Hash, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 
@@ -16,50 +16,6 @@ interface JobWithDetails extends Job {
     name: string;
   };
   order_number?: number | null;
-}
-
-interface SpecialJobWithDetails {
-  id: string;
-  customer_id: string;
-  worker_id: string;
-  job_type: SpecialJobType;
-  date: string;
-  status: 'pending' | 'completed';
-  notes?: string;
-  battery_type?: string;
-  order_number?: number | null;
-  customer?: {
-    name: string;
-    address: string;
-    phone: string;
-  };
-  worker?: {
-    name: string;
-  };
-}
-
-interface InstallationJobWithDetails {
-  id: string;
-  customer_id: string;
-  worker_id: string;
-  date: string;
-  status: 'pending' | 'completed';
-  notes?: string;
-  order_number?: number | null;
-  customer?: {
-    name: string;
-    address: string;
-    phone: string;
-  };
-  worker?: {
-    name: string;
-  };
-  devices?: {
-    id: string;
-    device_type: string;
-    notes?: string;
-    image_url?: string;
-  }[];
 }
 
 interface TimeEditModalProps {
@@ -151,23 +107,8 @@ function TimeEditModal({ job, onClose, onSave }: TimeEditModalProps) {
   );
 }
 
-const getSpecialJobIcon = (type: SpecialJobType) => {
-  switch (type) {
-    case 'scent_spread':
-      return <Spray className="h-4 w-4" />;
-    case 'plants':
-      return <Leaf className="h-4 w-4" />;
-    case 'batteries':
-      return <Battery className="h-4 w-4" />;
-    case 'repairs':
-      return <Wrench className="h-4 w-4" />;
-  }
-};
-
 export default function AdminDailySchedule() {
   const [jobs, setJobs] = useState<JobWithDetails[]>([]);
-  const [specialJobs, setSpecialJobs] = useState<SpecialJobWithDetails[]>([]);
-  const [installationJobs, setInstallationJobs] = useState<InstallationJobWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedWorker, setSelectedWorker] = useState<string>('all');
@@ -209,57 +150,18 @@ export default function AdminDailySchedule() {
         .gte('date', startOfDay.toISOString())
         .lte('date', endOfDay.toISOString());
 
-      // Fetch special jobs
-      let specialJobsQuery = supabase
-        .from('special_jobs')
-        .select(`
-          *,
-          customer:customer_id(name, address, phone),
-          worker:worker_id(name)
-        `)
-        .gte('date', startOfDay.toISOString())
-        .lte('date', endOfDay.toISOString());
-
-      // Fetch installation jobs
-      let installationJobsQuery = supabase
-        .from('installation_jobs')
-        .select(`
-          *,
-          customer:customer_id(name, address, phone),
-          worker:worker_id(name),
-          devices:installation_devices(id, device_type, notes, image_url)
-        `)
-        .gte('date', startOfDay.toISOString())
-        .lte('date', endOfDay.toISOString());
-
       if (selectedWorker !== 'all') {
         regularJobsQuery = regularJobsQuery.eq('worker_id', selectedWorker);
-        specialJobsQuery = specialJobsQuery.eq('worker_id', selectedWorker);
-        installationJobsQuery = installationJobsQuery.eq('worker_id', selectedWorker);
       }
 
       // First order by order_number (nulls last), then by date
       regularJobsQuery = regularJobsQuery
         .order('order_number', { ascending: true, nullsLast: true })
         .order('date', { ascending: true });
-      
-      specialJobsQuery = specialJobsQuery
-        .order('order_number', { ascending: true, nullsLast: true })
-        .order('date', { ascending: true });
-      
-      installationJobsQuery = installationJobsQuery
-        .order('order_number', { ascending: true, nullsLast: true })
-        .order('date', { ascending: true });
 
-      const [regularData, specialData, installationData] = await Promise.all([
-        regularJobsQuery,
-        specialJobsQuery,
-        installationJobsQuery
-      ]);
+      const regularData = await regularJobsQuery;
 
       if (regularData.error) throw regularData.error;
-      if (specialData.error) throw specialData.error;
-      if (installationData.error) throw installationData.error;
 
       // Sort the data arrays manually to ensure correct ordering
       const sortByOrderNumber = (a: any, b: any) => {
@@ -275,12 +177,8 @@ export default function AdminDailySchedule() {
       };
 
       const sortedRegularJobs = (regularData.data || []).sort(sortByOrderNumber);
-      const sortedSpecialJobs = (specialData.data || []).sort(sortByOrderNumber);
-      const sortedInstallationJobs = (installationData.data || []).sort(sortByOrderNumber);
 
       setJobs(sortedRegularJobs);
-      setSpecialJobs(sortedSpecialJobs);
-      setInstallationJobs(sortedInstallationJobs);
     } catch (error) {
       console.error('Error fetching jobs:', error);
       toast.error('טעינת המשימות נכשלה');
@@ -437,92 +335,7 @@ export default function AdminDailySchedule() {
               </div>
             )}
 
-            {/* Installation Jobs */}
-            {installationJobs.length > 0 && (
-              <div className="space-y-4">
-                <h2 className="text-xl font-semibold text-white flex items-center">
-                  <Tool className="h-5 w-5 text-purple-400 ml-2" />
-                  עבודות התקנה
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {installationJobs.map((job) => (
-                    <div key={job.id} className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-                      <div className="flex justify-between items-start mb-3">
-                        <div>
-                          <h3 className="text-lg font-medium text-white">{job.customer?.name}</h3>
-                          <div className="text-gray-400 text-sm mt-1">{job.customer?.address}</div>
-                          <div className="text-gray-400 text-sm mt-1 flex items-center">
-                            <Phone className="h-4 w-4 ml-1" />
-                            <span dir="ltr">{job.customer?.phone}</span>
-                          </div>
-                          {renderJobNumber(job.order_number)}
-                        </div>
-                        <span className={`px-3 py-1.5 text-xs font-semibold rounded-full ${getStatusStyle(job.status)}`}>
-                          {getStatusText(job.status)}
-                        </span>
-                      </div>
-                      <div className="text-blue-400 text-sm">{job.worker?.name}</div>
-                      <div className="text-gray-400 text-sm">{format(new Date(job.date), 'HH:mm')}</div>
-                      {job.devices && job.devices.length > 0 && (
-                        <div className="mt-3 space-y-2">
-                          <div className="text-gray-300 text-sm font-medium">מכשירים:</div>
-                          {job.devices.map((device, index) => (
-                            <div key={index} className="bg-gray-700 rounded-lg p-2 text-sm">
-                              <div className="text-blue-300">{device.device_type}</div>
-                              {device.notes && <div className="text-gray-400 mt-1">{device.notes}</div>}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Special Jobs */}
-            {specialJobs.length > 0 && (
-              <div className="space-y-4">
-                <h2 className="text-xl font-semibold text-white flex items-center">
-                  <Wrench className="h-5 w-5 text-green-400 ml-2" />
-                  עבודות מיוחדות
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {specialJobs.map((job) => (
-                    <div key={job.id} className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-                      <div className="flex justify-between items-start mb-3">
-                        <div>
-                          <h3 className="text-lg font-medium text-white">{job.customer?.name}</h3>
-                          <div className="text-gray-400 text-sm mt-1">{job.customer?.address}</div>
-                          <div className="text-gray-400 text-sm mt-1 flex items-center">
-                            <Phone className="h-4 w-4 ml-1" />
-                            <span dir="ltr">{job.customer?.phone}</span>
-                          </div>
-                          {renderJobNumber(job.order_number)}
-                        </div>
-                        <span className={`px-3 py-1.5 text-xs font-semibold rounded-full ${getStatusStyle(job.status)}`}>
-                          {getStatusText(job.status)}
-                        </span>
-                      </div>
-                      <div className="text-blue-400 text-sm">{job.worker?.name}</div>
-                      <div className="text-gray-400 text-sm">{format(new Date(job.date), 'HH:mm')}</div>
-                      <div className="flex items-center mt-3 bg-gray-700 rounded-lg p-2">
-                        {getSpecialJobIcon(job.job_type)}
-                        <span className="text-blue-300 mr-2">{SPECIAL_JOB_TYPES[job.job_type]}</span>
-                      </div>
-                      {job.battery_type && (
-                        <div className="mt-2 text-sm">
-                          <span className="text-gray-400">סוג סוללה: </span>
-                          <span className="text-blue-300">{job.battery_type}</span>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {jobs.length === 0 && installationJobs.length === 0 && specialJobs.length === 0 && (
+            {jobs.length === 0 && (
               <div className="text-center py-8 bg-gray-800 rounded-lg border border-gray-700">
                 <p className="text-gray-400">אין משימות ליום זה</p>
               </div>

@@ -1,8 +1,8 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import Layout from '../../components/Layout';
-import { Job, ServicePoint, DeviceType, BatteryType } from '../../types/database';
+import { Job, ServicePoint } from '../../types/database';
 import { supabase } from '../../lib/supabase';
-import { Calendar, Search, X, Image, Eye, Camera, Check, Phone, PenTool as Tool, Wrench, Battery, Leaf, SprayCan as Spray, Hash, Droplets } from 'lucide-react';
+import { Calendar, Search, X, Image, Eye, Camera, Check, Phone, SprayCan as Spray, Hash, Droplets } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
@@ -26,7 +26,7 @@ interface JobWithDetails extends Job {
   notes?: string;
 }
 
-type JobTypeTag = 'scent' | 'installation' | 'special';
+type JobTypeTag = 'scent';
 
 interface UnifiedJob {
   id: string;
@@ -53,11 +53,6 @@ interface ServicePointWithEditing extends ServicePoint {
 
 interface ScentSummary {
   [scentType: string]: number;
-}
-
-interface EquipmentSummary {
-  devices: Record<DeviceType, number>;
-  batteries: Record<BatteryType, number>;
 }
 
 interface ServicePointsModalProps {
@@ -426,7 +421,7 @@ function ExecutionModal({ job, onClose, onSuccess }: ExecutionModalProps) {
   );
 }
 
-type JobFilter = 'all' | 'scent' | 'installation' | 'special';
+type JobFilter = 'all' | 'scent';
 
 export default function WorkerSchedule() {
   const [jobs, setJobs] = useState<UnifiedJob[]>([]);
@@ -440,10 +435,6 @@ export default function WorkerSchedule() {
   const [executingJob, setExecutingJob] = useState<JobWithDetails | null>(null);
   const [scentSummary, setScentSummary] = useState<ScentSummary>({});
   const [loadingScentSummary, setLoadingScentSummary] = useState(true);
-  const [equipmentSummary, setEquipmentSummary] = useState<EquipmentSummary>({
-    devices: {} as Record<DeviceType, number>,
-    batteries: {} as Record<BatteryType, number>
-  });
 
   const selectedDateRef = useRef<Date>(selectedDate);
   const regularJobsMapRef = useRef<Record<string, JobWithDetails>>({});
@@ -476,37 +467,7 @@ export default function WorkerSchedule() {
         .order('order_number', { ascending: true })
         .order('date');
       if (regularJobsError) throw regularJobsError;
-      // Fetch installation jobs
-      const { data: installationJobs, error: installationJobsError } = await supabase
-        .from('installation_jobs')
-        .select(`
-          *,
-          customer:customer_id(name, address, phone),
-          one_time_customer:one_time_customer_id(name, address, phone),
-          devices:installation_devices(device_type)
-        `)
-        .eq('worker_id', user.id)
-        .eq('status', 'pending')
-        .gte('date', startOfDay.toISOString())
-        .lte('date', endOfDay.toISOString())
-        .order('order_number', { ascending: true })
-        .order('date');
-      if (installationJobsError) throw installationJobsError;
-      // Fetch special jobs
-      const { data: specialJobs, error: specialJobsError } = await supabase
-        .from('special_jobs')
-        .select(`
-          *,
-          customer:customer_id(name, address, phone),
-          one_time_customer:one_time_customer_id(name, address, phone)
-        `)
-        .eq('worker_id', user.id)
-        .eq('status', 'pending')
-        .gte('date', startOfDay.toISOString())
-        .lte('date', endOfDay.toISOString())
-        .order('order_number', { ascending: true })
-        .order('date');
-      if (specialJobsError) throw specialJobsError;
+      
       if (runId !== jobsFetchRunId) return; // ביטול אם זו לא הריצה האחרונה
       // Build regular jobs map for execution
       const regMap: Record<string, JobWithDetails> = {};
@@ -526,47 +487,11 @@ export default function WorkerSchedule() {
           notes: j.notes,
           type: 'scent' as JobTypeTag,
         })),
-        ...(installationJobs || []).map((j: any) => ({
-          id: j.id,
-          customer_id: j.customer_id,
-          date: j.date,
-          customer: j.customer,
-          one_time_customer: j.one_time_customer,
-          order_number: j.order_number,
-          notes: j.notes,
-          type: 'installation' as JobTypeTag,
-        })),
-        ...(specialJobs || []).map((j: any) => ({
-          id: j.id,
-          customer_id: j.customer_id,
-          date: j.date,
-          customer: j.customer,
-          one_time_customer: j.one_time_customer,
-          order_number: j.order_number,
-          notes: j.notes,
-          type: 'special' as JobTypeTag,
-        })),
       ];
       setJobs(unified);
-      // Calculate equipment summary
-      const newEquipmentSummary: EquipmentSummary = {
-        devices: {} as Record<DeviceType, number>,
-        batteries: {} as Record<BatteryType, number>
-      };
-      installationJobs?.forEach((job: any) => {
-        job.devices?.forEach((device: any) => {
-          const deviceType = device.device_type as DeviceType;
-          newEquipmentSummary.devices[deviceType] = (newEquipmentSummary.devices[deviceType] || 0) + 1;
-        });
-      });
-      specialJobs?.forEach((job: any) => {
-        if (job.job_type === 'batteries' && job.battery_type) {
-          const batteryType = job.battery_type as BatteryType;
-          newEquipmentSummary.batteries[batteryType] = (newEquipmentSummary.batteries[batteryType] || 0) + 1;
-        }
-      });
+      
       if (runId !== jobsFetchRunId) return;
-      setEquipmentSummary(newEquipmentSummary);
+      
       // After fetching jobs, calculate scent summary
       await calculateScentSummary(
         (regularJobs || []).filter(job =>
@@ -716,38 +641,6 @@ export default function WorkerSchedule() {
               </span>
             )}
           </button>
-          <button
-            onClick={() => setJobFilter('installation')}
-            className={`flex items-center px-4 py-2 rounded-lg font-medium transition-all ${
-              jobFilter === 'installation'
-                ? 'bg-purple-600 text-white shadow-lg'
-                : 'bg-gray-800 text-gray-400 hover:bg-purple-600/20 hover:text-purple-300'
-            }`}
-          >
-            <Tool className="h-4 w-4 ml-2" />
-            משימות התקנה
-            {jobFilter === 'installation' && (
-              <span className="mr-2 bg-purple-700 text-white text-xs px-2 py-0.5 rounded-full">
-                {sortedJobs.filter(j => j.type === 'installation').length}
-              </span>
-            )}
-          </button>
-          <button
-            onClick={() => setJobFilter('special')}
-            className={`flex items-center px-4 py-2 rounded-lg font-medium transition-all ${
-              jobFilter === 'special'
-                ? 'bg-amber-600 text-white shadow-lg'
-                : 'bg-gray-800 text-gray-400 hover:bg-amber-600/20 hover:text-amber-300'
-            }`}
-          >
-            <Wrench className="h-4 w-4 ml-2" />
-            משימות מיוחדות
-            {jobFilter === 'special' && (
-              <span className="mr-2 bg-amber-700 text-white text-xs px-2 py-0.5 rounded-full">
-                {sortedJobs.filter(j => j.type === 'special').length}
-              </span>
-            )}
-          </button>
         </div>
 
         {loading ? (
@@ -787,22 +680,6 @@ export default function WorkerSchedule() {
                               <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-blue-900/40 text-blue-300 border border-blue-800">
                                 <Spray className="h-3 w-3 ml-1" />
                                 משימת ריח
-                              </span>
-                            </div>
-                          )}
-                          {job.type === 'installation' && (
-                            <div className="mt-1">
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-purple-900/40 text-purple-300 border border-purple-800">
-                                <Tool className="h-3 w-3 ml-1" />
-                                משימת התקנה
-                              </span>
-                            </div>
-                          )}
-                          {job.type === 'special' && (
-                            <div className="mt-1">
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-amber-900/40 text-amber-300 border border-amber-800">
-                                <Wrench className="h-3 w-3 ml-1" />
-                                משימה מיוחדת
                               </span>
                             </div>
                           )}
@@ -904,42 +781,6 @@ export default function WorkerSchedule() {
                 </div>
               )}
             </div>
-
-            {/* Installation Equipment Summary */}
-            {Object.keys(equipmentSummary.devices).length > 0 && (
-              <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-                <div className="flex items-center mb-4">
-                  <Tool className="h-5 w-5 text-purple-400 ml-2" />
-                  <h2 className="text-lg font-semibold text-white">ציוד להתקנות</h2>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                  {Object.entries(equipmentSummary.devices).map(([deviceType, count]) => (
-                    <div key={deviceType} className="bg-gray-700 rounded-lg p-4 flex flex-col items-center">
-                      <div className="text-white font-medium mb-2">{deviceType}</div>
-                      <div className="text-purple-300 text-lg">{count} יחידות</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Batteries Summary */}
-            {Object.keys(equipmentSummary.batteries).length > 0 && (
-              <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-                <div className="flex items-center mb-4">
-                  <Battery className="h-5 w-5 text-green-400 ml-2" />
-                  <h2 className="text-lg font-semibold text-white">סוללות נדרשות</h2>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                  {Object.entries(equipmentSummary.batteries).map(([batteryType, count]) => (
-                    <div key={batteryType} className="bg-gray-700 rounded-lg p-4 flex flex-col items-center">
-                      <div className="text-white font-medium mb-2">סוללות {batteryType}</div>
-                      <div className="text-green-300 text-lg">{count} יחידות</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         )}
       </div>

@@ -63,17 +63,10 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-primary-dark flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 font-heebo">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="flex justify-center">
-          <img 
-            src="/logo.png" 
-            alt="IFEEL Logo" 
-            className="h-40 w-auto"
-          />
-        </div>
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
-          ברוכים הבאים ל-IFEEL
+        <h2 className="mt-8 text-center text-4xl font-extrabold text-white tracking-tight">
+          FEEL
         </h2>
-        <p className="mt-2 text-center text-sm text-secondary font-light">
+        <p className="mt-2 text-center text-lg text-secondary italic font-light opacity-90" style={{ fontFamily: "'Playball', cursive" }}>
           good in the air
         </p>
       </div>

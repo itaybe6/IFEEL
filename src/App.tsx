@@ -14,8 +14,6 @@ import AdminWorkSchedule from './pages/admin/WorkSchedule';
 import AdminDailySchedule from './pages/admin/DailySchedule';
 import AdminSupport from './pages/admin/Support';
 import AdminReports from './pages/admin/Reports';
-import AdminDeviceInstallation from './pages/admin/DeviceInstallation';
-import AdminInstallationJobs from './pages/admin/InstallationJobs';
 import AdminDevicesAndScents from './pages/admin/DevicesAndScents';
 import WorkerSchedule from './pages/worker/Schedule';
 import WorkerJobs from './pages/worker/Jobs';
@@ -43,8 +41,6 @@ function App() {
             <Route path="/admin/daily-schedule" element={<RequireAuth role="admin"><AdminDailySchedule /></RequireAuth>} />
             <Route path="/admin/support" element={<RequireAuth role="admin"><AdminSupport /></RequireAuth>} />
             <Route path="/admin/reports" element={<RequireAuth role="admin"><AdminReports /></RequireAuth>} />
-            <Route path="/admin/device-installation" element={<RequireAuth role="admin"><AdminDeviceInstallation /></RequireAuth>} />
-            <Route path="/admin/installation-jobs" element={<RequireAuth role="admin"><AdminInstallationJobs /></RequireAuth>} />
             <Route path="/admin/devices-and-scents" element={<RequireAuth role="admin"><AdminDevicesAndScents /></RequireAuth>} />
             
             {/* Worker Routes */}

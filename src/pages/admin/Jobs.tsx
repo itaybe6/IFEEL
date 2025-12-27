@@ -11,6 +11,7 @@ interface JobWithDetails extends Job {
   customer?: {
     name: string;
     address: string;
+    phone: string;
   };
   one_time_customer?: {
     name: string;
@@ -22,66 +23,7 @@ interface JobWithDetails extends Job {
   };
 }
 
-// Additional job types to support installation and special jobs in the unified view
-interface InstallationJobWithDetails {
-  id: string;
-  customer_id: string;
-  worker_id: string;
-  date: string;
-  status: 'pending' | 'completed';
-  notes?: string;
-  customer?: {
-    name: string;
-    address: string;
-    phone?: string;
-  };
-  one_time_customer?: {
-    name: string;
-    address: string;
-    phone?: string;
-  };
-  worker?: {
-    name: string;
-  };
-  devices?: {
-    id: string;
-    device_type: string;
-    notes?: string;
-    image_url?: string;
-  }[];
-}
-
-interface SpecialJobWithDetails {
-  id: string;
-  customer_id: string;
-  worker_id: string;
-  date: string;
-  status: 'pending' | 'completed';
-  notes?: string;
-  battery_type?: string;
-  image_url?: string;
-  job_type?: string;
-  customer?: {
-    name: string;
-    address: string;
-    phone?: string;
-  };
-  one_time_customer?: {
-    name: string;
-    address: string;
-    phone?: string;
-  };
-  worker?: {
-    name: string;
-  };
-}
-
-type CombinedJob =
-  | (JobWithDetails & { jobType: 'scent' })
-  | (InstallationJobWithDetails & { jobType: 'installation' })
-  | (SpecialJobWithDetails & { jobType: 'special' });
-
-type CombinedJobTypeFilter = 'all' | 'scent' | 'installation' | 'special';
+type CombinedJob = (JobWithDetails & { jobType: 'scent' });
 
 interface JobImage {
   jobId: string;
@@ -360,162 +302,6 @@ function NewJobModal({ job, isEditing, onClose, onSuccess }: NewJobModalProps) {
   );
 }
 
-interface EditSpecialJobModalProps {
-  job: SpecialJobWithDetails;
-  isEditing: boolean;
-  onClose: () => void;
-  onSuccess: () => void;
-}
-
-function EditSpecialJobModal({ job, isEditing, onClose, onSuccess }: EditSpecialJobModalProps) {
-  const [workers, setWorkers] = React.useState<{ id: string; name: string }[]>([]);
-  const [saving, setSaving] = React.useState(false);
-  const [form, setForm] = React.useState({
-    date: format(new Date(job.date), 'yyyy-MM-dd'),
-    worker_id: job.worker_id || '',
-    status: job.status || 'pending',
-    notes: job.notes || '',
-  });
-
-  React.useEffect(() => {
-    const fetchWorkers = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('users')
-          .select('id, name')
-          .eq('role', 'worker')
-          .order('name');
-        if (error) throw error;
-        setWorkers(data || []);
-      } catch (err) {
-        console.error('Error fetching workers:', err);
-        toast.error('טעינת העובדים נכשלה');
-      }
-    };
-    fetchWorkers();
-  }, []);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
-    try {
-      const { error } = await supabase
-        .from('special_jobs')
-        .update({
-          date: new Date(form.date).toISOString(),
-          worker_id: form.worker_id,
-          status: form.status as 'pending' | 'completed',
-          notes: form.notes || null,
-        })
-        .eq('id', job.id);
-
-      if (error) throw error;
-      toast.success('המשימה המיוחדת עודכנה בהצלחה');
-      onSuccess();
-      onClose();
-    } catch (err) {
-      console.error('Error updating special job:', err);
-      toast.error('עדכון המשימה המיוחדת נכשל');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-start justify-center z-50 p-4 overflow-y-auto">
-      <div className="bg-gray-800 rounded-lg p-6 max-w-3xl w-full shadow-xl border border-gray-700 my-8">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl sm:text-2xl font-bold text-white">
-            {isEditing ? 'עריכת משימה מיוחדת' : 'משימה מיוחדת'}
-          </h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-200">
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div className="form-group">
-              <label className="block text-sm font-medium text-gray-300 mb-2">תאריך</label>
-              <input
-                type="date"
-                readOnly
-                inputMode="none"
-                onKeyDown={(e) => e.preventDefault()}
-                onMouseDown={(e) => { e.preventDefault(); (e.currentTarget as HTMLInputElement).showPicker?.(); }}
-                onTouchStart={(e) => { e.preventDefault(); (e.currentTarget as HTMLInputElement).showPicker?.(); }}
-                onClick={(e) => (e.currentTarget as HTMLInputElement).showPicker?.()}
-                onFocus={(e) => (e.currentTarget as HTMLInputElement).showPicker?.()}
-                value={form.date}
-                onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
-                required
-                className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 py-3 px-4"
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="block text-sm font-medium text-gray-300 mb-2">עובד</label>
-              <select
-                value={form.worker_id}
-                onChange={(e) => setForm((f) => ({ ...f, worker_id: e.target.value }))}
-                required
-                className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 py-3 px-4"
-              >
-                <option value="" disabled>בחר עובד</option>
-                {workers.map((w) => (
-                  <option key={w.id} value={w.id}>
-                    {w.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label className="block text-sm font-medium text-gray-300 mb-2">סטטוס</label>
-              <select
-                value={form.status}
-                onChange={(e) => setForm((f) => ({ ...f, status: e.target.value as 'pending' | 'completed' }))}
-                className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 py-3 px-4"
-              >
-                <option value="pending">ממתין</option>
-                <option value="completed">הושלם</option>
-              </select>
-            </div>
-
-            <div className="form-group sm:col-span-2">
-              <label className="block text-sm font-medium text-gray-300 mb-2">הערות</label>
-              <textarea
-                value={form.notes}
-                onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
-                placeholder="הזן הערות (אופציונלי)"
-                rows={10}
-                className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 py-3 px-4 resize-y min-h-[200px] max-h-[70vh] overflow-auto"
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-end space-x-3 gap-4 pt-4 border-t border-gray-700">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-3 border border-gray-600 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-700"
-            >
-              ביטול
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="px-4 py-3 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              {saving ? 'שומר...' : 'שמור שינויים'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
-
 export default function AdminJobs() {
   const navigate = useNavigate();
   const [jobs, setJobs] = useState<CombinedJob[]>([]);
@@ -523,7 +309,6 @@ export default function AdminJobs() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const datePickerRef = React.useRef<HTMLInputElement>(null);
   const [selectedStatus, setSelectedStatus] = useState<'all' | 'pending' | 'completed'>('all');
-  const [selectedJobType, setSelectedJobType] = useState<CombinedJobTypeFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedImage, setSelectedImage] = useState<JobImage | null>(null);
   const [viewingServicePoints, setViewingServicePoints] = useState<{
@@ -531,47 +316,19 @@ export default function AdminJobs() {
     customerName: string;
   } | null>(null);
   const [editingJob, setEditingJob] = useState<JobWithDetails | null>(null);
-  const [editingSpecialJob, setEditingSpecialJob] = useState<SpecialJobWithDetails | null>(null);
 
   const fetchJobs = useCallback(async () => {
     try {
-      // Build base queries for each job source
-      let scentJobsQuery =
-        selectedJobType === 'all' || selectedJobType === 'scent'
-          ? supabase
-              .from('jobs')
-              .select(`
-                *,
-                customer:customer_id(name, address),
-                one_time_customer:one_time_customer_id(name, address, phone),
-                worker:worker_id(name)
-              `)
-          : null;
-
-      let installationJobsQuery =
-        selectedJobType === 'all' || selectedJobType === 'installation'
-          ? supabase
-              .from('installation_jobs')
-              .select(`
-                *,
-                customer:customer_id(name, address, phone),
-                one_time_customer:one_time_customer_id(name, address, phone),
-                worker:worker_id(name),
-                devices:installation_devices(id, device_type, notes, image_url)
-              `)
-          : null;
-
-      let specialJobsQuery =
-        selectedJobType === 'all' || selectedJobType === 'special'
-          ? supabase
-              .from('special_jobs')
-              .select(`
-                *,
-                customer:customer_id(name, address, phone),
-                one_time_customer:one_time_customer_id(name, address, phone),
-                worker:worker_id(name)
-              `)
-          : null;
+      setLoading(true);
+      
+      let query = supabase
+        .from('jobs')
+        .select(`
+          *,
+          customer:customer_id(name, address, phone),
+          one_time_customer:one_time_customer_id(name, address, phone),
+          worker:worker_id(name)
+        `);
 
       if (selectedDate) {
         const startOfDay = new Date(selectedDate);
@@ -579,52 +336,23 @@ export default function AdminJobs() {
         const endOfDay = new Date(selectedDate);
         endOfDay.setHours(23, 59, 59, 999);
 
-        if (scentJobsQuery) {
-          scentJobsQuery = scentJobsQuery
-            .gte('date', startOfDay.toISOString())
-            .lte('date', endOfDay.toISOString());
-        }
-        if (installationJobsQuery) {
-          installationJobsQuery = installationJobsQuery
-            .gte('date', startOfDay.toISOString())
-            .lte('date', endOfDay.toISOString());
-        }
-        if (specialJobsQuery) {
-          specialJobsQuery = specialJobsQuery
-            .gte('date', startOfDay.toISOString())
-            .lte('date', endOfDay.toISOString());
-        }
+        query = query
+          .gte('date', startOfDay.toISOString())
+          .lte('date', endOfDay.toISOString());
       }
 
       if (selectedStatus !== 'all') {
-        if (scentJobsQuery) scentJobsQuery = scentJobsQuery.eq('status', selectedStatus);
-        if (installationJobsQuery)
-          installationJobsQuery = installationJobsQuery.eq('status', selectedStatus);
-        if (specialJobsQuery) specialJobsQuery = specialJobsQuery.eq('status', selectedStatus);
+        query = query.eq('status', selectedStatus);
       }
 
-      const [scentRes, installationRes, specialRes] = await Promise.all([
-        scentJobsQuery ? scentJobsQuery.order('date', { ascending: false }) : Promise.resolve({ data: [] }),
-        installationJobsQuery
-          ? installationJobsQuery.order('date', { ascending: false })
-          : Promise.resolve({ data: [] }),
-        specialJobsQuery ? specialJobsQuery.order('date', { ascending: false }) : Promise.resolve({ data: [] }),
-      ]);
+      const { data, error } = await query.order('date', { ascending: false });
 
-      const combined: CombinedJob[] = [
-        ...((scentRes.data as JobWithDetails[] | undefined) || []).map((j) => ({
-          ...(j as JobWithDetails),
-          jobType: 'scent' as const,
-        })),
-        ...((installationRes.data as InstallationJobWithDetails[] | undefined) || []).map((j) => ({
-          ...(j as InstallationJobWithDetails),
-          jobType: 'installation' as const,
-        })),
-        ...((specialRes.data as SpecialJobWithDetails[] | undefined) || []).map((j) => ({
-          ...(j as SpecialJobWithDetails),
-          jobType: 'special' as const,
-        })),
-      ];
+      if (error) throw error;
+
+      const combined: CombinedJob[] = (data || []).map((j) => ({
+        ...(j as JobWithDetails),
+        jobType: 'scent' as const,
+      }));
 
       setJobs(combined);
     } catch (error) {
@@ -633,7 +361,7 @@ export default function AdminJobs() {
     } finally {
       setLoading(false);
     }
-  }, [selectedDate, selectedStatus, selectedJobType]);
+  }, [selectedDate, selectedStatus]);
 
   React.useEffect(() => {
     fetchJobs();
@@ -653,10 +381,9 @@ export default function AdminJobs() {
     setSelectedDate(null);
     setSelectedStatus('all');
     setSearchQuery('');
-    setSelectedJobType('all');
   };
 
-  const hasActiveFilters = selectedDate || selectedStatus !== 'all' || selectedJobType !== 'all' || searchQuery;
+  const hasActiveFilters = selectedDate || selectedStatus !== 'all' || searchQuery;
 
   const filteredJobs = jobs.filter(job => {
     if (!searchQuery) return true;
@@ -714,25 +441,7 @@ export default function AdminJobs() {
   };
 
   const handleDeleteAny = async (job: CombinedJob) => {
-    if (job.jobType === 'scent') {
-      await handleDeleteJob(job.id);
-      return;
-    }
-
-    if (!confirm('האם אתה בטוח שברצונך למחוק משימה זו?')) {
-      return;
-    }
-
-    try {
-      const table = job.jobType === 'special' ? 'special_jobs' : 'installation_jobs';
-      const { error } = await supabase.from(table).delete().eq('id', job.id);
-      if (error) throw error;
-      setJobs(prev => prev.filter(j => !(j.id === job.id && (j as any).jobType === job.jobType)));
-      toast.success('המשימה נמחקה בהצלחה');
-    } catch (error) {
-      console.error('Error deleting job:', error);
-      toast.error('מחיקת המשימה נכשלה');
-    }
+    await handleDeleteJob(job.id);
   };
 
   const handleViewImage = async (jobId: string) => {
@@ -815,32 +524,11 @@ export default function AdminJobs() {
   };
 
   const renderJobTypeText = (job: CombinedJob) => {
-    if (job.jobType === 'scent') return 'ריח';
-    if (job.jobType === 'installation') return 'התקנה';
-    return 'מיוחדת';
-  };
-  
-  const jobTypeChipClass = (type: 'scent' | 'installation' | 'special') => {
-    switch (type) {
-      case 'scent':
-        return 'bg-purple-500/10 text-purple-300 border border-purple-500/20';
-      case 'installation':
-        return 'bg-blue-500/10 text-blue-300 border border-blue-500/20';
-      case 'special':
-        return 'bg-pink-500/10 text-pink-300 border border-pink-500/20';
-      default:
-        return 'bg-gray-700 text-gray-300 border border-gray-600';
-    }
+    return 'ריח';
   };
   
   const handleEditJob = (job: CombinedJob) => {
-    if (job.jobType === 'scent') {
-      setEditingJob(job as JobWithDetails);
-      return;
-    }
-    if (job.jobType === 'special') {
-      setEditingSpecialJob(job as SpecialJobWithDetails);
-    }
+    setEditingJob(job as JobWithDetails);
   };
 
   const renderJobCard = (job: CombinedJob) => (
@@ -871,73 +559,37 @@ export default function AdminJobs() {
         </p>
         <p className="text-sm flex items-center gap-2">
           <span className="text-gray-500 min-w-[60px]">סוג:</span>
-          <span className={`inline-flex px-2 py-0.5 rounded-full text-xs ${jobTypeChipClass(job.jobType)}`}>
+          <span className="inline-flex px-2 py-0.5 rounded-full text-xs bg-purple-500/10 text-purple-300 border border-purple-500/20">
             {renderJobTypeText(job)}
           </span>
         </p>
       </div>
       
       <div className="relative flex flex-wrap gap-2 pt-4 border-t border-gray-800/50">
-        {job.jobType === 'scent' && (
-          <>
-            <button
-              onClick={() => handleEditJob(job)}
-              className="flex-1 px-3 py-2 rounded-lg bg-gray-800/60 hover:bg-gray-700 text-gray-400 hover:text-white transition-all duration-200 text-sm"
-            >
-              ערוך
-            </button>
-            <button
-              onClick={() =>
-                setViewingServicePoints({
-                  customerId: job.customer_id,
-                  customerName: job.customer?.name || job.one_time_customer?.name || '',
-                })
-              }
-              className="flex-1 px-3 py-2 rounded-lg bg-gray-800/60 hover:bg-gray-700 text-gray-400 hover:text-white transition-all duration-200 text-sm"
-            >
-              נקודות
-            </button>
-            {job.status === 'completed' && (
-              <button
-                onClick={() => handleViewImage(job.id)}
-                className="flex-1 px-3 py-2 rounded-lg bg-gray-800/60 hover:bg-gray-700 text-gray-400 hover:text-white transition-all duration-200 text-sm"
-              >
-                תמונות
-              </button>
-            )}
-          </>
-        )}
-        {job.jobType === 'special' && (
-          <>
-            <button
-              onClick={() => handleEditJob(job)}
-              className="flex-1 px-3 py-2 rounded-lg bg-gray-800/60 hover:bg-gray-700 text-gray-400 hover:text-white transition-all duration-200 text-sm"
-            >
-              ערוך
-            </button>
-          </>
-        )}
-        {job.jobType !== 'scent' && job.status === 'completed' && (
-          <>
-            {'image_url' in job && job.image_url && (
-              <button
-                onClick={() => handleViewImageFromPath(job.image_url as string, job.id)}
-                className="flex-1 px-3 py-2 rounded-lg bg-gray-800/60 hover:bg-gray-700 text-gray-400 hover:text-white transition-all duration-200 text-sm"
-              >
-                תמונה
-              </button>
-            )}
-            {'devices' in job && job.devices?.some((d) => d.image_url) && (
-              <button
-                onClick={() =>
-                  handleViewImageFromPath((job as InstallationJobWithDetails).devices?.find((d) => d.image_url)?.image_url as string, job.id)
-                }
-                className="flex-1 px-3 py-2 rounded-lg bg-gray-800/60 hover:bg-gray-700 text-gray-400 hover:text-white transition-all duration-200 text-sm"
-              >
-                תמונה
-              </button>
-            )}
-          </>
+        <button
+          onClick={() => handleEditJob(job)}
+          className="flex-1 px-3 py-2 rounded-lg bg-gray-800/60 hover:bg-gray-700 text-gray-400 hover:text-white transition-all duration-200 text-sm"
+        >
+          ערוך
+        </button>
+        <button
+          onClick={() =>
+            setViewingServicePoints({
+              customerId: job.customer_id!,
+              customerName: job.customer?.name || job.one_time_customer?.name || '',
+            })
+          }
+          className="flex-1 px-3 py-2 rounded-lg bg-gray-800/60 hover:bg-gray-700 text-gray-400 hover:text-white transition-all duration-200 text-sm"
+        >
+          נקודות שירות
+        </button>
+        {job.status === 'completed' && (
+          <button
+            onClick={() => handleViewImage(job.id)}
+            className="flex-1 px-3 py-2 rounded-lg bg-gray-800/60 hover:bg-gray-700 text-gray-400 hover:text-white transition-all duration-200 text-sm"
+          >
+            תמונות
+          </button>
         )}
         <button onClick={() => handleDeleteAny(job)} className="flex-1 px-3 py-2 rounded-lg bg-gray-800/60 hover:bg-red-900/40 text-gray-400 hover:text-red-400 transition-all duration-200 text-sm">
           מחק
@@ -964,21 +616,6 @@ export default function AdminJobs() {
             <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
               הושלמו {dayJobs.filter(j => j.status === 'completed').length}
             </span>
-            {dayJobs.some(j => j.jobType === 'scent') && (
-              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs ${jobTypeChipClass('scent')}`}>
-                ריח {dayJobs.filter(j => j.jobType === 'scent').length}
-              </span>
-            )}
-            {dayJobs.some(j => j.jobType === 'installation') && (
-              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs ${jobTypeChipClass('installation')}`}>
-                התקנה {dayJobs.filter(j => j.jobType === 'installation').length}
-              </span>
-            )}
-            {dayJobs.some(j => j.jobType === 'special') && (
-              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs ${jobTypeChipClass('special')}`}>
-                מיוחדת {dayJobs.filter(j => j.jobType === 'special').length}
-              </span>
-            )}
           </div>
         </div>
       </div>
@@ -1010,28 +647,9 @@ export default function AdminJobs() {
                 </td>
                 <td className="px-5 py-4 text-sm">
                   <div className="flex flex-wrap gap-1.5 items-center">
-                    {job.jobType === 'scent' && (
-                      <>
-                        <button onClick={() => handleEditJob(job)} className="p-2 rounded-lg bg-gray-800/60 hover:bg-gray-700 text-gray-400 hover:text-white transition-all duration-200 hover:scale-110" title="ערוך משימה"><Edit className="h-4 w-4" /></button>
-                        <button onClick={() => setViewingServicePoints({customerId: (job as JobWithDetails).customer_id,customerName: job.customer?.name || job.one_time_customer?.name || ''})} className="p-2 rounded-lg bg-gray-800/60 hover:bg-gray-700 text-gray-400 hover:text-white transition-all duration-200 hover:scale-110" title="הצג נקודות שירות"><Eye className="h-4 w-4" /></button>
-                        {job.status === 'completed' && (<button onClick={() => handleViewImage(job.id)} className="p-2 rounded-lg bg-gray-800/60 hover:bg-gray-700 text-gray-400 hover:text-white transition-all duration-200 hover:scale-110" title="הצג תמונות"><Image className="h-4 w-4" /></button>)}
-                      </>
-                    )}
-                    {job.jobType === 'special' && (
-                      <>
-                        <button onClick={() => handleEditJob(job)} className="p-2 rounded-lg bg-gray-800/60 hover:bg-gray-700 text-gray-400 hover:text-white transition-all duration-200 hover:scale-110" title="ערוך משימה מיוחדת"><Edit className="h-4 w-4" /></button>
-                      </>
-                    )}
-                    {job.jobType !== 'scent' && job.status === 'completed' && (
-                      <>
-                        {'image_url' in job && job.image_url && (
-                          <button onClick={() => handleViewImageFromPath((job as any).image_url, job.id)} className="p-2 rounded-lg bg-gray-800/60 hover:bg-gray-700 text-gray-400 hover:text-white transition-all duration-200 hover:scale-110" title="הצג תמונה"><Image className="h-4 w-4" /></button>
-                        )}
-                        {'devices' in job && (job as any).devices?.some((d: any) => d.image_url) && (
-                          <button onClick={() => handleViewImageFromPath((job as any).devices.find((d: any) => d.image_url).image_url, job.id)} className="p-2 rounded-lg bg-gray-800/60 hover:bg-gray-700 text-gray-400 hover:text-white transition-all duration-200 hover:scale-110" title="הצג תמונה"><Image className="h-4 w-4" /></button>
-                        )}
-                      </>
-                    )}
+                    <button onClick={() => handleEditJob(job)} className="p-2 rounded-lg bg-gray-800/60 hover:bg-gray-700 text-gray-400 hover:text-white transition-all duration-200 hover:scale-110" title="ערוך משימה"><Edit className="h-4 w-4" /></button>
+                    <button onClick={() => setViewingServicePoints({customerId: (job as JobWithDetails).customer_id!,customerName: job.customer?.name || job.one_time_customer?.name || ''})} className="p-2 rounded-lg bg-gray-800/60 hover:bg-gray-700 text-gray-400 hover:text-white transition-all duration-200 hover:scale-110" title="הצג נקודות שירות"><Eye className="h-4 w-4" /></button>
+                    {job.status === 'completed' && (<button onClick={() => handleViewImage(job.id)} className="p-2 rounded-lg bg-gray-800/60 hover:bg-gray-700 text-gray-400 hover:text-white transition-all duration-200 hover:scale-110" title="הצג תמונות"><Image className="h-4 w-4" /></button>)}
                     <button onClick={() => handleDeleteAny(job)} className="p-2 rounded-lg bg-gray-800/60 hover:bg-red-900/40 text-gray-400 hover:text-red-400 transition-all duration-200 hover:scale-110" title="מחק משימה">מחק</button>
                   </div>
                 </td>
@@ -1047,12 +665,12 @@ export default function AdminJobs() {
     <Layout userRole="admin">
       <div className="space-y-8">
         {/* Header with gradient text and modern buttons */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-l from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
-              ניהול משימות
+              ניהול משימות ריח
             </h1>
-            <p className="text-gray-500 text-sm mt-1.5">צפייה וניהול כל המשימות במערכת</p>
+            <p className="text-gray-500 text-sm mt-1.5">צפייה וניהול כל משימות הריח במערכת</p>
           </div>
           <div className="flex gap-3">
             <button
@@ -1089,19 +707,6 @@ export default function AdminJobs() {
             </div>
 
             {/* Filters */}
-            <div className="flex-shrink-0 w-full md:w-auto">
-              <select
-                value={selectedJobType}
-                onChange={(e) => setSelectedJobType(e.target.value as CombinedJobTypeFilter)}
-                className="block w-full rounded-xl py-3 px-4 bg-gray-950/60 border border-gray-800/60 text-white hover:bg-gray-950/80 focus:bg-gray-950 focus:border-gray-700 focus:ring-2 focus:ring-gray-700/40 transition-all duration-200 cursor-pointer"
-              >
-                <option value="all">כל סוגי המשימות</option>
-                <option value="scent">משימות ריח</option>
-                <option value="installation">משימות התקנה</option>
-                <option value="special">משימות מיוחדות</option>
-              </select>
-            </div>
-
             <div className="flex-shrink-0 w-full md:w-auto">
               <select
                 value={selectedStatus}
@@ -1195,21 +800,9 @@ export default function AdminJobs() {
                         <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
                           הושלמו {dayJobs.filter(j => j.status === 'completed').length}
                         </span>
-                        {dayJobs.some(j => j.jobType === 'scent') && (
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full ${jobTypeChipClass('scent')}`}>
-                            ריח {dayJobs.filter(j => j.jobType === 'scent').length}
-                          </span>
-                        )}
-                        {dayJobs.some(j => j.jobType === 'installation') && (
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full ${jobTypeChipClass('installation')}`}>
-                            התקנה {dayJobs.filter(j => j.jobType === 'installation').length}
-                          </span>
-                        )}
-                        {dayJobs.some(j => j.jobType === 'special') && (
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full ${jobTypeChipClass('special')}`}>
-                            מיוחדת {dayJobs.filter(j => j.jobType === 'special').length}
-                          </span>
-                        )}
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-300 border border-purple-500/20">
+                          ריח {dayJobs.length}
+                        </span>
                       </div>
                     </div>
                     {dayJobs.map(job => renderJobCard(job))}
@@ -1279,14 +872,6 @@ export default function AdminJobs() {
           job={editingJob}
           isEditing={true}
           onClose={() => setEditingJob(null)}
-          onSuccess={fetchJobs}
-        />
-      )}
-      {editingSpecialJob && (
-        <EditSpecialJobModal
-          job={editingSpecialJob}
-          isEditing={true}
-          onClose={() => setEditingSpecialJob(null)}
           onSuccess={fetchJobs}
         />
       )}
