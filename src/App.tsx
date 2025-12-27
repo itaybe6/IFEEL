@@ -12,14 +12,11 @@ import AdminJobExecution from './pages/admin/JobExecution';
 import AdminWorkTemplates from './pages/admin/WorkTemplates';
 import AdminWorkSchedule from './pages/admin/WorkSchedule';
 import AdminDailySchedule from './pages/admin/DailySchedule';
-import AdminSupport from './pages/admin/Support';
-import AdminReports from './pages/admin/Reports';
 import AdminDevicesAndScents from './pages/admin/DevicesAndScents';
 import WorkerSchedule from './pages/worker/Schedule';
 import WorkerJobs from './pages/worker/Jobs';
 import CustomerProfile from './pages/customer/Profile';
 import CustomerServices from './pages/customer/Services';
-import CustomerSupport from './pages/customer/Support';
 
 function App() {
   return (
@@ -39,8 +36,6 @@ function App() {
             <Route path="/admin/work-templates" element={<RequireAuth role="admin"><AdminWorkTemplates /></RequireAuth>} />
             <Route path="/admin/work-schedule" element={<RequireAuth role="admin"><AdminWorkSchedule /></RequireAuth>} />
             <Route path="/admin/daily-schedule" element={<RequireAuth role="admin"><AdminDailySchedule /></RequireAuth>} />
-            <Route path="/admin/support" element={<RequireAuth role="admin"><AdminSupport /></RequireAuth>} />
-            <Route path="/admin/reports" element={<RequireAuth role="admin"><AdminReports /></RequireAuth>} />
             <Route path="/admin/devices-and-scents" element={<RequireAuth role="admin"><AdminDevicesAndScents /></RequireAuth>} />
             
             {/* Worker Routes */}
@@ -50,7 +45,6 @@ function App() {
             {/* Customer Routes */}
             <Route path="/customer" element={<RequireAuth role="customer"><CustomerProfile /></RequireAuth>} />
             <Route path="/customer/services" element={<RequireAuth role="customer"><CustomerServices /></RequireAuth>} />
-            <Route path="/customer/support" element={<RequireAuth role="customer"><CustomerSupport /></RequireAuth>} />
             
             {/* Default redirect */}
             <Route path="/" element={<Navigate to="/login" replace />} />

@@ -25,7 +25,6 @@ export default function Layout({ children, userRole }: LayoutProps) {
   const [isTasksOpen, setIsTasksOpen] = React.useState(false);
   const { setIsLoading } = useLoading();
   const { setUser } = useAuth();
-  const [newTicketsCount, setNewTicketsCount] = useState(0);
 
   const handleLogout = async () => {
     setIsLoading(true);
@@ -43,43 +42,6 @@ export default function Layout({ children, userRole }: LayoutProps) {
     setIsSidebarOpen(false);
   };
 
-  React.useEffect(() => {
-    // Only fetch new tickets count for admin role
-    if (userRole === 'admin') {
-      const fetchNewTicketsCount = async () => {
-        try {
-          const { count, error } = await supabase
-            .from('support_tickets')
-            .select('*', { count: 'exact', head: true })
-            .eq('is_new', true);
-          
-          if (error) throw error;
-          setNewTicketsCount(count || 0);
-        } catch (error) {
-          console.error('Error fetching new tickets count:', error);
-        }
-      };
-
-      fetchNewTicketsCount();
-
-      // Set up subscription for real-time updates
-      const subscription = supabase
-        .channel('support_tickets_changes')
-        .on('postgres_changes', { 
-          event: '*', 
-          schema: 'public', 
-          table: 'support_tickets' 
-        }, () => {
-          fetchNewTicketsCount();
-        })
-        .subscribe();
-
-      return () => {
-        subscription.unsubscribe();
-      };
-    }
-  }, [userRole]);
-
   const getMenuItems = () => {
     switch (userRole) {
       case 'admin': {
@@ -96,13 +58,6 @@ export default function Layout({ children, userRole }: LayoutProps) {
           { label: 'מכשירים וניחוחות', path: '/admin/devices-and-scents', icon: <Spray className="h-4 w-4 ml-1" /> },
           { label: 'תבניות עבודה', path: '/admin/work-templates', icon: <FileText className="h-4 w-4 ml-1" /> },
           { label: 'קווי עבודה', path: '/admin/work-schedule', icon: <CalendarRange className="h-4 w-4 ml-1" /> },
-          { 
-            label: 'שירות לקוחות', 
-            path: '/admin/support',
-            icon: <HeadphonesIcon className="h-4 w-4 ml-1" />,
-            notification: newTicketsCount > 0
-          },
-          { label: 'דוחות', path: '/admin/reports', icon: <CalendarClock className="h-4 w-4 ml-1" /> },
         ];
 
         return { taskItems, otherItems };
@@ -121,7 +76,6 @@ export default function Layout({ children, userRole }: LayoutProps) {
           otherItems: [
             { label: 'פרופיל', path: '/customer', icon: <Users className="h-4 w-4 ml-1" /> },
             { label: 'שירותים', path: '/customer/services', icon: <Droplets className="h-4 w-4 ml-1" /> },
-            { label: 'תמיכה טכנית', path: '/customer/support', icon: <HeadphonesIcon className="h-4 w-4 ml-1" /> }
           ] as NavItem[]
         };
       default:

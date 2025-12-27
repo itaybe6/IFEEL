@@ -78,15 +78,6 @@ interface WorkSchedule {
   template?: WorkTemplate;
 }
 
-export interface SupportTicket {
-  id: string;
-  customer_name: string;
-  phone: string;
-  description: string;
-  created_at: string;
-  is_new?: boolean;
-}
-
 // -- Exact DB table row types (faithful to the Supabase schema) --
 export interface Users {
   id: string;
@@ -157,15 +148,6 @@ export interface ServicePoints {
   created_at: string | null;
   device_type: string;
   scent_type: string | null;
-}
-
-export interface SupportTickets {
-  id: string;
-  customer_name: string;
-  phone: string;
-  description: string;
-  is_new: boolean | null;
-  created_at: string | null;
 }
 
 export interface TemplateStations {
