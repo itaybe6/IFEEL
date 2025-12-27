@@ -158,6 +158,15 @@ export default function AdminAddJobs() {
         customerId = '';
       }
 
+      console.log('Attempting to create job with data:', {
+        customer_id: customerId || null,
+        one_time_customer_id: oneTimeCustomerId,
+        worker_id: formData.workerId,
+        date: jobDate.toISOString(),
+        status: 'pending',
+        notes: formData.notes || null,
+      });
+
       const { data: newJob, error: jobError } = await supabase
         .from('jobs')
         .insert([{
@@ -171,7 +180,10 @@ export default function AdminAddJobs() {
         .select()
         .single();
 
-      if (jobError) throw jobError;
+      if (jobError) {
+        console.error('Supabase error creating job:', jobError);
+        throw jobError;
+      }
 
       if (servicePoints && servicePoints.length > 0) {
         const jobServicePoints = servicePoints.map(point => ({
@@ -394,13 +406,6 @@ export default function AdminAddJobs() {
                 </label>
                 <input
                   type="date"
-                  readOnly
-                  inputMode="none"
-                  onKeyDown={(e) => e.preventDefault()}
-                  onMouseDown={(e) => { e.preventDefault(); (e.currentTarget as HTMLInputElement).showPicker?.(); }}
-                  onTouchStart={(e) => { e.preventDefault(); (e.currentTarget as HTMLInputElement).showPicker?.(); }}
-                  onClick={(e) => (e.currentTarget as HTMLInputElement).showPicker?.()}
-                  onFocus={(e) => (e.currentTarget as HTMLInputElement).showPicker?.()}
                   value={formData.date}
                   onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                   required

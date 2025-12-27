@@ -593,13 +593,6 @@ export default function WorkerSchedule() {
               </div>
               <input
                 type="date"
-                readOnly
-                inputMode="none"
-                onKeyDown={(e) => e.preventDefault()}
-                onMouseDown={(e) => { e.preventDefault(); (e.currentTarget as HTMLInputElement).showPicker?.(); }}
-                onTouchStart={(e) => { e.preventDefault(); (e.currentTarget as HTMLInputElement).showPicker?.(); }}
-                onClick={(e) => (e.currentTarget as HTMLInputElement).showPicker?.()}
-                onFocus={(e) => (e.currentTarget as HTMLInputElement).showPicker?.()}
                 value={format(selectedDate, 'yyyy-MM-dd')}
                 onChange={(e) => setSelectedDate(e.target.value ? new Date(e.target.value) : new Date())}
                 className="block w-full pr-10 rounded-lg bg-gray-700 border-gray-600 text-white shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50"
